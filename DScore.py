@@ -128,7 +128,7 @@ def processIAT(iat: str):
 
     # from the first block we know the order of the other blocks
     firstBlock = iatf['cond'][0]
-    #print(firstBlock)
+    firstComp = iatf['comp'][0]
 
     deviations = {}
     # deviations[3] = blockStdDev(iatf, 3)
@@ -148,13 +148,18 @@ def processIAT(iat: str):
     meanLatencies['7'] = np.mean(iatf[iatf['block'] == 7]['rt'])
     # print(latencies['7'])
 
+    # Using the first block to guage the ordering, ensure that the compatible blocks are subtracted from
+    # the incompatible blocks
     meanDifferences = {}
-    meanDifferences['3,6'] = meanLatencies['6'] - meanLatencies['3']
-    meanDifferences['4,7'] = meanLatencies['7'] - meanLatencies['4']
+    if (firstComp == 'compatible'):
+        meanDifferences['3,6'] = meanLatencies['6'] - meanLatencies['3']
+        meanDifferences['4,7'] = meanLatencies['7'] - meanLatencies['4']
+    else:
+        meanDifferences['3,6'] = meanLatencies['3'] - meanLatencies['6']
+        meanDifferences['4,7'] = meanLatencies['4'] - meanLatencies['7']
 
     # D score is the equal weight average of the mean differences divided by their associated standard deviations
     Dscore = ((meanDifferences['3,6'] / deviations['3,6']) + (meanDifferences['4,7'] / deviations['4,7'])) / 2
-    Dscore = -Dscore if (firstBlock == 'Fat people/Bad words,Thin people/Good words') else Dscore
     # print(Dscore)
     return Dscore
 
@@ -190,7 +195,6 @@ def main():
 
     df['Flower/Insect D-Scores'] = flowerInsectDScores
 
-    df.to_csv('D-Scores.csv', index=False)
-
+    df.to_csv('D-Scores_4.csv', index=False)
 
 main()
